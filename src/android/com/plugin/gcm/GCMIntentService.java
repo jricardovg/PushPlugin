@@ -41,6 +41,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 			// Send this JSON data to the JavaScript application above EVENT should be set to the msg type
 			// In this case this is the registration ID
 			PushPlugin.sendJavascript( json );
+            
 
 		}
 		catch( JSONException e)
@@ -59,6 +60,8 @@ public class GCMIntentService extends GCMBaseIntentService {
 	protected void onMessage(Context context, Intent intent) {
 		Log.d(TAG, "onMessage - context: " + context);
 
+
+        
 		// Extract the payload from the message
 		Bundle extras = intent.getExtras();
 		if (extras != null)
@@ -70,10 +73,29 @@ public class GCMIntentService extends GCMBaseIntentService {
 			}
 			else {
 				extras.putBoolean("foreground", false);
-
                 // Send a notification if there is a message
                 if (extras.getString("message") != null && extras.getString("message").length() != 0) {
-                    createNotification(context, extras);
+                                
+                    String payload = extras.getString("payload").toString();
+                    try {
+                        JSONObject payload_json = new JSONObject(payload);
+                        String type = payload_json.getString("type");
+                        if (type.equals("incoming_call")) {
+                            // @hack @kadukeitor || @pikitgb
+                            Context ctx= context; // or you can replace **'this'** with your **ActivityName.this**
+                            try {
+                                Intent i = ctx.getPackageManager().getLaunchIntentForPackage("com.callpal.callpalapp");
+                                ctx.startActivity(i);
+                            } catch (Exception e) {
+                                // TODO Auto-generated catch block
+                            }
+                        } else {
+                            createNotification(context, extras);
+                        }
+                    } catch (Exception e) {
+                    
+                    }
+                    
                 }
             }
         }
